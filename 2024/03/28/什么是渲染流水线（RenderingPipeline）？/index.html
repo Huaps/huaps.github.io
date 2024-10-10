@@ -1,0 +1,248 @@
+<!DOCTYPE html><html lang="ch" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>什么是渲染流水线（Render Pipeline）？ | 小月怀之的个人博客</title><meta name="author" content="Huaps/小月怀之"><meta name="copyright" content="Huaps/小月怀之"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="流水线，又名管线，英文是pipeline。“管线”这一名称曾给我理解这一概念带来了很大障碍，“渲染管线”听起来不明觉厉。不过随着对计算机组成原理、Unity Shader及技术美术知识的学习，我逐渐理解了Pipeline。本质上，流水线就是从完整地做完一件事变成分段做，将各个流程交给专门的工人来做，以此提高执行效率。在《Unity Shader 入门精要》这本书中，作者用一个简单例子讲清楚了流水线">
+<meta property="og:type" content="article">
+<meta property="og:title" content="什么是渲染流水线（Render Pipeline）？">
+<meta property="og:url" content="https://huaps.github.io/2024/03/28/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/index.html">
+<meta property="og:site_name" content="小月怀之的个人博客">
+<meta property="og:description" content="流水线，又名管线，英文是pipeline。“管线”这一名称曾给我理解这一概念带来了很大障碍，“渲染管线”听起来不明觉厉。不过随着对计算机组成原理、Unity Shader及技术美术知识的学习，我逐渐理解了Pipeline。本质上，流水线就是从完整地做完一件事变成分段做，将各个流程交给专门的工人来做，以此提高执行效率。在《Unity Shader 入门精要》这本书中，作者用一个简单例子讲清楚了流水线">
+<meta property="og:locale">
+<meta property="og:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png">
+<meta property="article:published_time" content="2024-03-28T02:44:37.000Z">
+<meta property="article:modified_time" content="2024-04-06T15:59:38.092Z">
+<meta property="article:author" content="Huaps&#x2F;小月怀之">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png"><link rel="shortcut icon" href="/img/favicon.png"><link rel="canonical" href="https://huaps.github.io/2024/03/28/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css?v=4.13.0"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.1/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.min.css" media="print" onload="this.media='all'"><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  noticeOutdate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false},
+  copy: {
+    success: 'Copy Successful',
+    error: 'Copy Error',
+    noSupport: 'Browser Not Supported'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: 'Just now',
+    min: 'minutes ago',
+    hour: 'hours ago',
+    day: 'days ago',
+    month: 'months ago'
+  },
+  copyright: undefined,
+  lightbox: 'fancybox',
+  Snackbar: undefined,
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid@4.11.1/dist/infinitegrid.min.js',
+    buttonText: 'Load More'
+  },
+  isPhotoFigcaption: false,
+  islazyload: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '什么是渲染流水线（Render Pipeline）？',
+  isPost: true,
+  isHome: false,
+  isHighlightShrink: false,
+  isToc: true,
+  postUpdate: '2024-04-06 23:59:38'
+}</script><script>(win=>{
+      win.saveToLocal = {
+        set: (key, value, ttl) => {
+          if (ttl === 0) return
+          const now = Date.now()
+          const expiry = now + ttl * 86400000
+          const item = {
+            value,
+            expiry
+          }
+          localStorage.setItem(key, JSON.stringify(item))
+        },
+      
+        get: key => {
+          const itemStr = localStorage.getItem(key)
+      
+          if (!itemStr) {
+            return undefined
+          }
+          const item = JSON.parse(itemStr)
+          const now = Date.now()
+      
+          if (now > item.expiry) {
+            localStorage.removeItem(key)
+            return undefined
+          }
+          return item.value
+        }
+      }
+    
+      win.getScript = (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        script.onerror = reject
+        script.onload = script.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          script.onload = script.onreadystatechange = null
+          resolve()
+        }
+
+        Object.keys(attr).forEach(key => {
+          script.setAttribute(key, attr[key])
+        })
+
+        document.head.appendChild(script)
+      })
+    
+      win.getCSS = (url, id = false) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onerror = reject
+        link.onload = link.onreadystatechange = function() {
+          const loadState = this.readyState
+          if (loadState && loadState !== 'loaded' && loadState !== 'complete') return
+          link.onload = link.onreadystatechange = null
+          resolve()
+        }
+        document.head.appendChild(link)
+      })
+    
+      win.activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      win.activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+      const t = saveToLocal.get('theme')
+    
+        if (t === 'dark') activateDarkMode()
+        else if (t === 'light') activateLightMode()
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        if (asideStatus === 'hide') {
+          document.documentElement.classList.add('hide-aside')
+        } else {
+          document.documentElement.classList.remove('hide-aside')
+        }
+      }
+    
+      const detectApple = () => {
+        if(/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)){
+          document.documentElement.classList.add('apple')
+        }
+      }
+      detectApple()
+    })(window)</script><meta name="generator" content="Hexo 7.1.1"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img is-center"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="onerror=null;src='/img/friend_404.gif'" alt="avatar"/></div><div class="sidebar-site-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><hr class="custom-hr"/></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header"><nav id="nav"><span id="blog-info"><a href="/" title="小月怀之的个人博客"><span class="site-name">小月怀之的个人博客</span></a></span><div id="menus"><div id="toggle-menu"><a class="site-page" href="javascript:void(0);"><i class="fas fa-bars fa-fw"></i></a></div></div></nav><div id="post-info"><h1 class="post-title">什么是渲染流水线（Render Pipeline）？</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">Created</span><time class="post-meta-date-created" datetime="2024-03-28T02:44:37.000Z" title="Created 2024-03-28 10:44:37">2024-03-28</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">Updated</span><time class="post-meta-date-updated" datetime="2024-04-06T15:59:38.092Z" title="Updated 2024-04-06 23:59:38">2024-04-06</time></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title="什么是渲染流水线（Render Pipeline）？"><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">Post Views:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="post-content" id="article-container"><p>流水线，又名管线，英文是pipeline。“管线”这一名称曾给我理解这一概念带来了很大障碍，“渲染管线”听起来不明觉厉。<br>不过随着对计算机组成原理、Unity Shader及技术美术知识的学习，我逐渐理解了Pipeline。本质上，流水线就是从完整地做完一件事变成分段做，将各个流程交给专门的工人来做，以此提高执行效率。<br>在《Unity Shader 入门精要》这本书中，作者用一个简单例子讲清楚了流水线的核心思想：</p>
+<blockquote>
+<p>我们先来看一下真实生活中的流水线是什么。在工业上，流水线被广泛应用在装配线上。<br>我们来举一个例子。假设，老王有一个生产洋娃娃的工厂，一个洋娃娃的生产流程可以分为4个步骤：第1步，制作洋娃娃的躯干；第2步，缝上眼睛和嘴巴;第3步，添加头发；第4步：给洋娃娃进行最后的产品包装。<br>在流水线出现之前，只有在每个洋娃娃完成了所有这4个工序后才能开始制作下一个洋娃娃 如果说每个步骤需要的时间是1小时的话，那么每4个小时才能生产一个洋娃娃。<br>但后来人们发现了一个更加有效的方法，即使用流水线。老王把流水线引入工厂之后，工厂 发生了很大的变化。虽然制作一个洋娃娃仍然需要 4个步骤，但不需要从头到尾完成全部步骤，而是每个步骤由专人来完成，所有步骤并行进行。也就是说，当工序1完成了制作躯干的任务并把其交给工序2时，工序1又开始进行下一个洋娃娃的制作了。<br>使用流水线的好处在于可以提高单位时间的生产量。在洋娃娃的例子中，使用了流水线技术后每1个小时就可以生产一个洋娃娃。</p>
+</blockquote>
+<p>作者还介绍到，流水线存在这样一个特性：</p>
+<blockquote>
+<p>可以发现，流水线系统中决定最后生产速度的是最慢的工序所需的时间。例如，如果生产洋娃娃的第二道工序需要的是两个小时，其他工序仍然需要1个小时的话，那么平均每两个小时才能生产出一个洋娃娃。即工序2是性能的瓶颈(bottleneck)。<br>理想情况下，如果把一个非流水线系统分成n个流水线阶段，且每个阶段耗费时间相同的话会使整个系统得到n倍的速度提升。</p>
+</blockquote>
+<p>那么将流水线放到渲染的语境下是怎样运作的呢？</p>
+<h2 id="渲染流水线的工作任务与阶段划分"><a href="#渲染流水线的工作任务与阶段划分" class="headerlink" title="渲染流水线的工作任务与阶段划分"></a>渲染流水线的工作任务与阶段划分</h2><p>工作任务是？</p>
+<blockquote>
+<p>渲染流水线的工作任务在于由一个三维场景出发、生成(或者说渲染)一张二维图像。<br>换句话说，计算机需要从一系列的顶点数据、纹理等信息出发,把这些信息最终转换成一张人眼可以看到的图像。</p>
+</blockquote>
+<p>谁来负责做工作？</p>
+<blockquote>
+<p>这个工作通常是由CPU和GPU共同完成的。</p>
+</blockquote>
+<p>概念阶段？<br><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img.png" alt="img.png"></p>
+<blockquote>
+<p>应用、几何、光栅化</p>
+</blockquote>
+<h2 id="渲染流水线的实现办法"><a href="#渲染流水线的实现办法" class="headerlink" title="渲染流水线的实现办法"></a>渲染流水线的实现办法</h2><p>1.输入装配阶段 -&gt; 2.顶点着色器 -&gt; 3.曲面细分阶段 -&gt; 4.几何着色器 -&gt;<br>5.剪裁阶段 -&gt; 6.光栅化阶段 -&gt; 7.像素着色器 -&gt; 8.输出合并阶段</p>
+<h3 id="CPU到GPU"><a href="#CPU到GPU" class="headerlink" title="CPU到GPU"></a>CPU到GPU</h3><ol>
+<li>把数据加载到显存中</li>
+<li>*粗粒度剔除工作</li>
+<li>设置渲染状态</li>
+<li>调用DrawCall</li>
+</ol>
+<h3 id="GPU流水线"><a href="#GPU流水线" class="headerlink" title="GPU流水线"></a>GPU流水线</h3><p><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img2.png" alt="img.png"></p>
+<h4 id="顶点着色器"><a href="#顶点着色器" class="headerlink" title="顶点着色器"></a>顶点着色器</h4><p>主要处理顶点的各种<strong>空间变换</strong>，以及实现逐顶点光照。一个顶点着色器必须完成的任务是：<br><strong>把顶点坐标从模型空间转换到齐次裁剪空间</strong>。先留心 <strong>“透视除法”</strong> 以及 <strong>“归一化的设备坐标 NDC”</strong> 的概念，数学实现按下不表。</p>
+<blockquote>
+<p>坐标变换。顾名思义，就是对顶点的坐标(即位置)进行某种变换。<br>顶点着色器可以在这一步中改变顶点的位置，这在顶点动画中是非常有用的。<br>例如，我们可以通过改变顶点位置来模拟水面、布料等。<br>但需要注意的是,无论我们在顶点着色器中怎样改变顶点的位置,一个最基本的顶点着色器必须完成的一个工作是，<br>把顶点坐标从模型空间转换到齐次裁剪空间。想想看，我们在顶点着色器中是不是会看到类似下面的代码:</p>
+</blockquote>
+<figure class="highlight c#"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">o.pos =mul(UNITY MVP，v.position);</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>类似上面这句代码的功能，就是把顶点坐标转换到齐次裁剪坐标系下，<br>接着通常再由硬件做透视除法后，最终得到归一化的设备坐标(NormalizedDeviceCoordinates，NDC)。</p>
+</blockquote>
+<p>说到空间变换，就需要了解渲染涉及的不同坐标空间：</p>
+<ul>
+<li>模型&#x2F;物体&#x2F;局部空间（Model&#x2F;Object&#x2F;Local Space, OS）</li>
+<li>世界空间（World Space, WS）</li>
+<li>观察空间（View Space, VS）</li>
+<li>裁剪空间（Clip Space, CS）</li>
+<li>屏幕空间（Screen Space）</li>
+</ul>
+<p>在不同的空间做变换，通常是通过<strong>将坐标与矩阵做乘积</strong>的方式实现。在上述空间之间，存在三种最典型的变换：</p>
+<ul>
+<li>模型变换（Model Transform）</li>
+<li>观察变换（View Transform）</li>
+<li>投影变换（Projection Transform）</li>
+</ul>
+<blockquote>
+<p>MVP变换，就是Model模型、View观察、Projection投影变换三个单词的缩写，<br>是图形学中将三维空间的物体呈现在二维屏幕上十分重要的三个变换。</p>
+</blockquote>
+<p>对于模型空间与MVP变换，在这里只是简单提及，今后有时间再专门写一篇笔记梳理。</p>
+<p>除了上述的不同空间之间的变换，顶点的变换往往还用来模拟布料、水流等。</p>
+<p>据说：</p>
+<blockquote>
+<p>顶点着色器也可以访问纹理贴图一类的数据.<br>只是与像素着色器中不同的是, 顶点着色器中只能用 sampleLevel方法采样, 即必须手动指定 mipmap 等级.(顺便提到 ddx, ddy 函数)</p>
+</blockquote>
+<h4 id="曲面细分着色器"><a href="#曲面细分着色器" class="headerlink" title="曲面细分着色器"></a>曲面细分着色器</h4><p>在这一步可以对三角形进行细分, 以此来增加模型细节。</p>
+<h4 id="几何着色器"><a href="#几何着色器" class="headerlink" title="几何着色器"></a>几何着色器</h4><p>其主要特点是可以创建与销毁集合体, 还看过的例子是公告板技术,<br>在几何着色器中将一个点扩展为一个四边形并在上面贴上树木或者云来代替几何模型, 以此来降低性能消耗.</p>
+<h4 id="裁剪"><a href="#裁剪" class="headerlink" title="裁剪"></a>裁剪</h4><p>在顶点着色器中，模型的坐标已经被转化为了齐次裁剪空间坐标，并做透视除法，得到了归一化的设备坐标（NDC）。<br>裁剪就是在这一基础上，将完全位于视野外的图元丢弃，将部分位于视野内的图元做<strong>裁剪</strong>，而完全位于视野内的则保留。<br><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img_3.png" alt="img_3.png"></p>
+<h4 id="屏幕映射"><a href="#屏幕映射" class="headerlink" title="*屏幕映射"></a>*屏幕映射</h4><p>屏幕映射所做的工作是将NDC转化为屏幕空间坐标。<br>对x和y坐标做相应的变化，但是z坐标不做任何改变。这一过程又叫视口变换。<br><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img_4.png" alt="img_4.png"></p>
+<p>这里可能牵涉到OpenGL和DirectX的坐标系定义差异问题。</p>
+<ul>
+<li>OpenGL的起点在左下角</li>
+<li>DirectX的起点位于左上角<br><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img_5.png" alt="img_5.png"></li>
+</ul>
+<h4 id="三角形设置"><a href="#三角形设置" class="headerlink" title="*三角形设置"></a>*三角形设置</h4><p>三角形设置的阶段是为了获得图元对像素的覆盖情况，利用图元的顶点，计算出包围图元的边。</p>
+<blockquote>
+<p>一个计算三角网格表示数据的过程就叫三角形设置。它的输出是为了给下一阶段做准备。</p>
+</blockquote>
+<h4 id="三角形遍历"><a href="#三角形遍历" class="headerlink" title="*三角形遍历"></a>*三角形遍历</h4><blockquote>
+<p>三角形遍历(Triangle Traversal)阶段将会检查每个像素是否被一个三角网格所覆盖。如果被覆盖的话，就会生成一个**片元(fragment)**。<br>而这样一个找到哪些像素被三角网格覆盖的过程就是三角形遍历，这个阶段也被称为扫描变换(ScanConversion)<br>三角形遍历阶段会根据上一个阶段的计算结果来判断一个三角网格覆盖了哪些像素，<br>并使用三角网格3个顶点的顶点信息对整个覆盖区域的像素进行插值。</p>
+</blockquote>
+<p><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img_6.png" alt="img_6.png"></p>
+<p>背面剔除：在“光栅化阶段”的“三角形遍历”过程中进行，<br>就在决定哪些像素将被填充的前一步，这个步骤确定哪些三角形不会对最终图像作出贡献，并将它们剔除。</p>
+<p>顶点属性插值：这个过程在“三角形遍历”和“像素着色器”之间进行，<br>确切地说可能是在“三角形遍历”的末尾，这是在像素级别上确定顶点属性如何在像素之间进行插值的阶段。</p>
+<h4 id="片元着色器-像素着色器（Fragment-Pixel-Shader）"><a href="#片元着色器-像素着色器（Fragment-Pixel-Shader）" class="headerlink" title="片元着色器 &#x2F; 像素着色器（Fragment&#x2F;Pixel Shader）"></a>片元着色器 &#x2F; 像素着色器（Fragment&#x2F;Pixel Shader）</h4><p>处理光照,阴影,特效等等, 绝大部分被眼睛感知到的画面效果都是在这里做的.</p>
+<h4 id="逐片元操作-输出合并阶段（在DirectX中）"><a href="#逐片元操作-输出合并阶段（在DirectX中）" class="headerlink" title="逐片元操作 &#x2F; 输出合并阶段（在DirectX中）"></a>逐片元操作 &#x2F; 输出合并阶段（在DirectX中）</h4><p>修改颜色、深度缓冲、进行混合</p>
+<p>决定每个片元的可见性，包含一系列测试：<br><img src="/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/img_2.png" alt="img_2.png"></p>
+<ul>
+<li>裁剪测试：如果一个点在裁剪区域外，我希望它彻底不渲染，也不要对缓冲区造成任何影响，所以优先级最高</li>
+<li>Alpha测试：优先于模板测试，当我们希望用一个不规则的图片进行模板的裁剪的时候，应该使用Alpha测试先过滤掉那些透明的片段，我们只希望剩下的不透明片段来更新模板缓存</li>
+<li>模板测试：我希望对模板值进行一些更新，所以哪怕我被其它东西挡住，导致这个片段显示不出来，我也要把模板值更新进去</li>
+<li>深度测试：最后决定这个片段是否渲染（涉及Early-z和Z-Prepass技术）</li>
+</ul>
+<p>如果一个片元通过了所有的测试，就需要把这个片元的颜色值和已经存储在颜色缓冲区中的颜色进行合并，或者说是混合（Blend）。</p>
+<h2 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h2><ul>
+<li>《Unity Shader 入门精要》</li>
+<li>图形学：MVP变换概述 <a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/551648397">https://zhuanlan.zhihu.com/p/551648397</a></li>
+</ul>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>Author: </span><span class="post-copyright-info"><a href="https://huaps.github.io">Huaps/小月怀之</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>Link: </span><span class="post-copyright-info"><a href="https://huaps.github.io/2024/03/28/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/">https://huaps.github.io/2024/03/28/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>Copyright Notice: </span><span class="post-copyright-info">All articles in this blog are licensed under <a target="_blank" rel="noopener" href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA 4.0</a> unless stating additionally.</span></div></div><div class="tag_share"><div class="post-meta__tag-list"></div><div class="post_share"><div class="social-share" data-image="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc@1.1.3/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><div class="next-post pull-full"><a href="/2024/03/08/hello-world/" title="我的第一篇博客"><div class="cover" style="background: var(--default-bg-color)"></div><div class="pagination-info"><div class="label">Next</div><div class="next_info">我的第一篇博客</div></div></a></div></nav></div><div class="aside-content" id="aside-content"><div class="card-widget card-info"><div class="is-center"><div class="avatar-img"><img src="https://i.loli.net/2021/02/24/5O1day2nriDzjSu.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info__name">Huaps/小月怀之</div><div class="author-info__description"></div></div><div class="card-info-data site-data is-center"><a href="/archives/"><div class="headline">Articles</div><div class="length-num">2</div></a><a href="/tags/"><div class="headline">Tags</div><div class="length-num">0</div></a><a href="/categories/"><div class="headline">Categories</div><div class="length-num">0</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/xxxxxx"><i class="fab fa-github"></i><span>Follow Me</span></a></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>Announcement</span></div><div class="announcement_content">This is my Blog</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>Contents</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%9A%84%E5%B7%A5%E4%BD%9C%E4%BB%BB%E5%8A%A1%E4%B8%8E%E9%98%B6%E6%AE%B5%E5%88%92%E5%88%86"><span class="toc-number">1.</span> <span class="toc-text">渲染流水线的工作任务与阶段划分</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%E7%9A%84%E5%AE%9E%E7%8E%B0%E5%8A%9E%E6%B3%95"><span class="toc-number">2.</span> <span class="toc-text">渲染流水线的实现办法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#CPU%E5%88%B0GPU"><span class="toc-number">2.1.</span> <span class="toc-text">CPU到GPU</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#GPU%E6%B5%81%E6%B0%B4%E7%BA%BF"><span class="toc-number">2.2.</span> <span class="toc-text">GPU流水线</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%A1%B6%E7%82%B9%E7%9D%80%E8%89%B2%E5%99%A8"><span class="toc-number">2.2.1.</span> <span class="toc-text">顶点着色器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%9B%B2%E9%9D%A2%E7%BB%86%E5%88%86%E7%9D%80%E8%89%B2%E5%99%A8"><span class="toc-number">2.2.2.</span> <span class="toc-text">曲面细分着色器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%87%A0%E4%BD%95%E7%9D%80%E8%89%B2%E5%99%A8"><span class="toc-number">2.2.3.</span> <span class="toc-text">几何着色器</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%A3%81%E5%89%AA"><span class="toc-number">2.2.4.</span> <span class="toc-text">裁剪</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B1%8F%E5%B9%95%E6%98%A0%E5%B0%84"><span class="toc-number">2.2.5.</span> <span class="toc-text">*屏幕映射</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E8%A7%92%E5%BD%A2%E8%AE%BE%E7%BD%AE"><span class="toc-number">2.2.6.</span> <span class="toc-text">*三角形设置</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%B8%89%E8%A7%92%E5%BD%A2%E9%81%8D%E5%8E%86"><span class="toc-number">2.2.7.</span> <span class="toc-text">*三角形遍历</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%89%87%E5%85%83%E7%9D%80%E8%89%B2%E5%99%A8-%E5%83%8F%E7%B4%A0%E7%9D%80%E8%89%B2%E5%99%A8%EF%BC%88Fragment-Pixel-Shader%EF%BC%89"><span class="toc-number">2.2.8.</span> <span class="toc-text">片元着色器 &#x2F; 像素着色器（Fragment&#x2F;Pixel Shader）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%80%90%E7%89%87%E5%85%83%E6%93%8D%E4%BD%9C-%E8%BE%93%E5%87%BA%E5%90%88%E5%B9%B6%E9%98%B6%E6%AE%B5%EF%BC%88%E5%9C%A8DirectX%E4%B8%AD%EF%BC%89"><span class="toc-number">2.2.9.</span> <span class="toc-text">逐片元操作 &#x2F; 输出合并阶段（在DirectX中）</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%8F%82%E8%80%83"><span class="toc-number">3.</span> <span class="toc-text">参考</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>Recent Post</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/03/28/%E4%BB%80%E4%B9%88%E6%98%AF%E6%B8%B2%E6%9F%93%E6%B5%81%E6%B0%B4%E7%BA%BF%EF%BC%88RenderingPipeline%EF%BC%89%EF%BC%9F/" title="什么是渲染流水线（Render Pipeline）？">什么是渲染流水线（Render Pipeline）？</a><time datetime="2024-03-28T02:44:37.000Z" title="Created 2024-03-28 10:44:37">2024-03-28</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2024/03/08/hello-world/" title="我的第一篇博客">我的第一篇博客</a><time datetime="2024-03-08T03:51:14.509Z" title="Created 2024-03-08 11:51:14">2024-03-08</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2020 - 2024 By Huaps/小月怀之</div><div class="framework-info"><span>Framework </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>Theme </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="Read Mode"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="Toggle Between Light And Dark Mode"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="Toggle between Single-column and Double-column"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="Setting"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="Table Of Contents"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="Back To Top"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js?v=4.13.0"></script><script src="/js/main.js?v=4.13.0"></script><script src="https://cdn.jsdelivr.net/npm/@fancyapps/ui@5.0.33/dist/fancybox/fancybox.umd.min.js"></script><div class="js-pjax"></div><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
